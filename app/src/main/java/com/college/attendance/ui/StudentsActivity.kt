@@ -1,4 +1,4 @@
-package ui
+package com.college.attendance.ui
 
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge

@@ -1,12 +1,12 @@
-package ru.college.attendance
+package com.college.attendance
 
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
-import ru.college.attendance.ui.AttendanceActivity
-import ru.college.attendance.ui.StatisticsActivity
-import ru.college.attendance.ui.StudentsActivity
+import com.college.attendance.ui.AttendanceActivity
+import com.college.attendance.ui.StatisticsActivity
+import com.college.attendance.ui.StudentsActivity
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

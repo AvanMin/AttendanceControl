@@ -22,15 +22,15 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="ui.StudentsActivity"
+            android:name=".ui.StudentsActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
         <activity
-            android:name="ui.AttendanceActivity"
+            android:name=".ui.AttendanceActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
         <activity
-            android:name="ui.StatisticsActivity"
+            android:name=".ui.StatisticsActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
     </application>
