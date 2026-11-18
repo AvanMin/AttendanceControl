@@ -5,12 +5,15 @@ import android.os.Bundle
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.college.attendance.R
-import com.college.attendance.data.Attendance
-import com.college.attendance.data.AttendanceRepository
-import com.college.attendance.data.Lesson
+import com.college.attendance.data.AppDatabase
+import com.college.attendance.data.AttendanceEntity
+import com.college.attendance.data.LessonEntity
+import com.college.attendance.data.Student
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -25,20 +28,25 @@ class AttendanceActivity : AppCompatActivity() {
     private lateinit var tvEmptyList: TextView
     private lateinit var btnSaveAttendance: Button
 
+    private lateinit var db: AppDatabase
     private var adapter: AttendanceAdapter? = null
-    private var selectedLesson: Lesson? = null
+    private var savedLessons: List<LessonEntity> = emptyList()
+    private var selectedLesson: LessonEntity? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_attendance)
-        findViewById<Button>(R.id.btnBackToMain).setOnClickListener {
+
+        db = AppDatabase.getInstance(this)
+
+        findViewById<Button>(R.id.btnBackToMain)?.setOnClickListener {
             finish()
         }
+
         initViews()
-        setupGroupSpinner()
         setupDatePicker()
         setupListeners()
-        refreshSavedLessonsSpinner()
+        loadInitialData()
     }
 
     private fun initViews() {
@@ -54,8 +62,15 @@ class AttendanceActivity : AppCompatActivity() {
         rvStudents.layoutManager = LinearLayoutManager(this)
     }
 
-    private fun setupGroupSpinner() {
-        val groups = AttendanceRepository.getGroups()
+    private fun loadInitialData() {
+        lifecycleScope.launch {
+            setupGroupSpinner()
+            refreshSavedLessonsSpinner(selectId = null)
+        }
+    }
+
+    private suspend fun setupGroupSpinner() {
+        val groups = db.studentDao().getAllGroups()
         if (groups.isEmpty()) {
             val emptyAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, listOf("Нет групп"))
             spinnerGroup.adapter = emptyAdapter
@@ -103,27 +118,32 @@ class AttendanceActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            val (lesson, isNew) = AttendanceRepository.addOrGetLesson(selectedGroup, date, subject)
-            etSubject.text.clear()
-
-            if (isNew) {
-                Toast.makeText(this, "Занятие «$subject» сохранено", Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(this, "Такое занятие уже есть — открыто из списка", Toast.LENGTH_SHORT).show()
+            lifecycleScope.launch {
+                val existing = db.attendanceDao().findLesson(selectedGroup, date, subject)
+                val targetId: Int
+                if (existing != null) {
+                    targetId = existing.id
+                    Toast.makeText(this@AttendanceActivity, "Такое занятие уже есть — открыто из БД", Toast.LENGTH_SHORT).show()
+                } else {
+                    val insertedId = db.attendanceDao().insertLesson(
+                        LessonEntity(groupName = selectedGroup, lessonDate = date, subject = subject)
+                    )
+                    targetId = insertedId.toInt()
+                    Toast.makeText(this@AttendanceActivity, "Занятие «$subject» сохранено в БД", Toast.LENGTH_SHORT).show()
+                }
+                etSubject.text.clear()
+                refreshSavedLessonsSpinner(selectId = targetId)
             }
-
-            val index = AttendanceRepository.lessons.indexOf(lesson)
-            refreshSavedLessonsSpinner(selectIndex = index)
         }
 
         spinnerSavedLessons.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                val lessons = AttendanceRepository.lessons
-                if (lessons.isEmpty() || position !in lessons.indices) return
-
-                val lesson = lessons[position]
+                if (savedLessons.isEmpty() || position !in savedLessons.indices) return
+                val lesson = savedLessons[position]
                 selectedLesson = lesson
-                loadStudentList(lesson)
+                lifecycleScope.launch {
+                    loadStudentList(lesson)
+                }
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) {}
@@ -134,27 +154,32 @@ class AttendanceActivity : AppCompatActivity() {
             val lesson = selectedLesson ?: return@setOnClickListener
             val statusesMap = currentAdapter.getCurrentStatuses()
 
-            val records = statusesMap.map { (studentId, status) ->
-                Attendance(
-                    studentId = studentId,
-                    lessonDate = lesson.lessonDate,
-                    subject = lesson.subject,
-                    status = status
-                )
+            lifecycleScope.launch {
+                statusesMap.forEach { (studentId, status) ->
+                    // Гарантируем правило 1 итоговой отметки на студента и занятие
+                    db.attendanceDao().deleteByStudentAndLesson(studentId, lesson.id)
+                    db.attendanceDao().insertAttendance(
+                        AttendanceEntity(
+                            studentId = studentId,
+                            lessonId = lesson.id,
+                            lessonDate = lesson.lessonDate,
+                            subject = lesson.subject,
+                            status = status
+                        )
+                    )
+                }
+                Toast.makeText(
+                    this@AttendanceActivity,
+                    "Отметки сохранены в БД для «${lesson.subject}» (${statusesMap.size} чел.)",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
-
-            AttendanceRepository.saveAttendanceList(records)
-            Toast.makeText(
-                this,
-                "Сохранено для «${lesson.subject}» (${records.size} чел.)",
-                Toast.LENGTH_SHORT
-            ).show()
         }
     }
 
-    private fun refreshSavedLessonsSpinner(selectIndex: Int = 0) {
-        val lessons = AttendanceRepository.lessons
-        if (lessons.isEmpty()) {
+    private suspend fun refreshSavedLessonsSpinner(selectId: Int?) {
+        savedLessons = db.attendanceDao().getAllLessons()
+        if (savedLessons.isEmpty()) {
             val emptyAdapter = ArrayAdapter(
                 this,
                 android.R.layout.simple_spinner_item,
@@ -166,20 +191,28 @@ class AttendanceActivity : AppCompatActivity() {
             tvEmptyList.visibility = View.VISIBLE
             btnSaveAttendance.isEnabled = false
         } else {
-            val titles = lessons.map { "${it.lessonDate} | ${it.groupName} — ${it.subject}" }
+            val titles = savedLessons.map { "${it.lessonDate} | ${it.groupName} — ${it.subject}" }
             val lessonAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, titles)
             lessonAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             spinnerSavedLessons.adapter = lessonAdapter
             spinnerSavedLessons.isEnabled = true
 
-            if (selectIndex in lessons.indices) {
-                spinnerSavedLessons.setSelection(selectIndex)
+            val index = if (selectId != null) {
+                savedLessons.indexOfFirst { it.id == selectId }.coerceAtLeast(0)
+            } else {
+                0
             }
+            spinnerSavedLessons.setSelection(index)
+            selectedLesson = savedLessons[index]
+            loadStudentList(savedLessons[index])
         }
     }
 
-    private fun loadStudentList(lesson: Lesson) {
-        val students = AttendanceRepository.getStudentsByGroup(lesson.groupName)
+    private suspend fun loadStudentList(lesson: LessonEntity) {
+        val entities = db.studentDao().getByGroup(lesson.groupName)
+        val students = entities.map {
+            Student(id = it.id, firstName = it.firstName, lastName = it.lastName, groupName = it.groupName)
+        }
 
         if (students.isEmpty()) {
             rvStudents.visibility = View.GONE
@@ -191,15 +224,14 @@ class AttendanceActivity : AppCompatActivity() {
             rvStudents.visibility = View.VISIBLE
             btnSaveAttendance.isEnabled = true
 
-            val existingStatuses = students.associate { student ->
-                student.id to (AttendanceRepository.getStatusForStudent(
-                    student.id,
-                    lesson.lessonDate,
-                    lesson.subject
-                ) ?: "Присутствовал")
+            val existingRecords = db.attendanceDao().getAttendanceByLesson(lesson.id)
+                .associate { it.studentId to it.status }
+
+            val initialStatuses = students.associate { student ->
+                student.id to (existingRecords[student.id] ?: "Присутствовал")
             }
 
-            adapter = AttendanceAdapter(students, existingStatuses)
+            adapter = AttendanceAdapter(students, initialStatuses)
             rvStudents.adapter = adapter
         }
     }
