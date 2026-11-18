@@ -2,14 +2,105 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:gravity="center"
+    android:fitsSystemWindows="true"
     android:orientation="vertical"
     android:padding="16dp">
-
+    <Button
+        android:id="@+id/btnBackToMain"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="← На главный экран" />
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Экран: Отметка посещаемости"
+        android:text="Занятия и посещаемость"
         android:textSize="20sp"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Блок 1: Создание занятия -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="1. Новое занятие:"
+        android:textStyle="bold"
+        android:textSize="14sp" />
+
+    <Spinner
+        android:id="@+id/spinnerGroup"
+        android:layout_width="match_parent"
+        android:layout_height="44dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="6dp">
+
+        <EditText
+            android:id="@+id/etLessonDate"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
+            android:hint="Дата"
+            android:focusable="false"
+            android:clickable="true"
+            android:layout_marginEnd="8dp" />
+
+        <EditText
+            android:id="@+id/etSubject"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1.6"
+            android:hint="Дисциплина / тема"
+            android:inputType="textCapSentences" />
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/btnCreateLesson"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Создать и сохранить занятие"
+        android:layout_marginBottom="10dp" />
+
+    <!-- Блок 2: Выбор сохранённого занятия -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="2. Выберите сохранённое занятие:"
+        android:textStyle="bold"
+        android:textSize="14sp" />
+
+    <Spinner
+        android:id="@+id/spinnerSavedLessons"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:id="@+id/tvEmptyAttendanceList"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:text="Создайте хотя бы одно занятие выше, чтобы отметить студентов"
+        android:textSize="15sp"
+        android:visibility="visible" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvAttendanceStudents"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:visibility="gone" />
+
+    <Button
+        android:id="@+id/btnSaveAttendance"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Сохранить отметки посещаемости"
+        android:enabled="false"
+        android:layout_marginTop="8dp" />
+
 </LinearLayout>
