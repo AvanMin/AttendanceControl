@@ -5,12 +5,14 @@
     android:fitsSystemWindows="true"
     android:orientation="vertical"
     android:padding="16dp">
+
     <Button
         android:id="@+id/btnBackToMain"
         style="@style/Widget.Material3.Button.TextButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="← На главный экран" />
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -19,7 +21,6 @@
         android:textStyle="bold"
         android:layout_marginBottom="8dp" />
 
-    <!-- Блок 1: Создание занятия -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -64,7 +65,6 @@
         android:text="Создать и сохранить занятие"
         android:layout_marginBottom="10dp" />
 
-    <!-- Блок 2: Выбор сохранённого занятия -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
