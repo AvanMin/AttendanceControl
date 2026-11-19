@@ -27,6 +27,9 @@ interface AttendanceDao {
     @Query("SELECT * FROM attendance WHERE lessonId = :lessonId")
     suspend fun getAttendanceByLesson(lessonId: Int): List<AttendanceEntity>
 
-    @Query("SELECT * FROM attendance")
+    @Query("SELECT * FROM attendance ORDER BY id DESC")
     suspend fun getAllAttendance(): List<AttendanceEntity>
+
+    @Query("SELECT DISTINCT lessonDate FROM attendance ORDER BY lessonDate DESC")
+    suspend fun getAllAttendanceDates(): List<String>
 }

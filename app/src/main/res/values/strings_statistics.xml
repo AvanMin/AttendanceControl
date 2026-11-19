@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="statistics_title">Статистика и история посещаемости</string>
+    <string name="filters_header">Фильтры:</string>
+    <string name="filter_all_groups">Все группы</string>
+    <string name="filter_all_students">Все студенты</string>
+    <string name="hint_filter_date">Дата занятия (все даты)</string>
+    <string name="clear_date">Очистить дату</string>
+    <string name="reset_filters">Сбросить</string>
+    <string name="stat_lessons">Занятий: %1$d</string>
+    <string name="stat_records">Отметок: %1$d</string>
+    <string name="stat_present">Присутств.: %1$d</string>
+    <string name="stat_absent">Пропусков: %1$d</string>
+    <string name="stat_late">Опозданий: %1$d</string>
+    <string name="stat_percent">Посещаемость: %1$d%%</string>
+    <string name="history_header">История отметок:</string>
+    <string name="history_empty_db">История посещаемости пока пуста. Отметьте студентов на занятии.</string>
+    <string name="history_empty_filtered">По выбранным фильтрам записей не найдено.</string>
+</resources>
