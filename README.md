@@ -8,6 +8,29 @@
 * **Android SDK:** минимальная версия API 24 (Android 7.0), целевая API 34+.
 * **Устройство:** Android-смартфон или встроенный эмулятор Android Virtual Device (AVD).
 
+## Архитектура и структура проекта
+
+Приложение **AttendanceControl** построено на классическом стеке Android (Kotlin + XML Views + Activity) с разделением на слой данных (`data`) и пользовательский интерфейс (`ui`):
+
+```text
+app/src/main/java/com/college/attendance/
+├── MainActivity.kt                  # Главный экран навигации (Студенты / Посещаемость / Статистика)
+├── data/
+│   ├── Student.kt / StudentEntity.kt       # Модель и Room-таблица студентов (`students`)
+│   ├── Lesson.kt / LessonEntity.kt         # Модель и Room-таблица учебных занятий (`lessons`)
+│   ├── Attendance.kt / AttendanceEntity.kt # Модель и Room-таблица отметок (`attendance`)
+│   ├── StudentDao.kt                       # SQL-запросы для работы со списком студентов
+│   ├── AttendanceDao.kt                    # SQL-запросы для занятий, отметок и истории
+│   ├── AppDatabase.kt                      # Singleton-конфигурация базы данных Room (SQLite)
+│   ├── StudentRepository.kt                # Репозиторий управления студентами
+│   ├── AttendanceRepository.kt             # Репозиторий управления занятиями и отметками
+│   ├── StudentValidator.kt                 # Валидация ввода (проверка пустых полей, пробелов, дублей)
+│   └── StatisticsCalculator.kt             # Подсчёт показателей (всего, присутствовал, отсутствовал, опоздал)
+└── ui/
+    ├── StudentsActivity.kt / StudentAdapter.kt             # Управление списком студентов (добавление/удаление)
+    ├── AttendanceActivity.kt / AttendanceAdapter.kt        # Создание занятия и выставление статусов
+    └── StatisticsActivity.kt / StatisticsHistoryAdapter.kt # Фильтрация истории и вывод сводной статистики
+```
 ## 3. Используемые технологии
 * **Язык программирования:** Kotlin
 * **Пользовательский интерфейс:** XML-разметка + Activity (View-based)
@@ -21,7 +44,7 @@
 |----------------|---------------------|---------------------|------------------|---------------------|---------------------|---------------------|
 | Карпов Илья    | Product Owner (PO)  | Lead Developer (LD) | QA / DevOps      | Product Owner (PO)  | Lead Developer (LD) | QA / DevOps         |
 | Галкин Юрий    | Lead Developer (LD) | QA / DevOps         | Product Owner (PO)| Lead Developer (LD)| QA / DevOps        | Product Owner (PO) |
-| Мария Лаврова  | QA / DevOps         | Product Owner (PO)  | Lead Developer(LD)| QA / DevOps        | Product Owner (PO) | Lead Developer (LD)|
+| Лаврова Мария  | QA / DevOps         | Product Owner (PO)  | Lead Developer(LD)| QA / DevOps        | Product Owner (PO) | Lead Developer (LD)|
 
 ## 5. Открытие и запуск проекта
 1. Клонируйте репозиторий на локальный компьютер:
@@ -34,4 +57,4 @@
 * [x] **Спринт 3:** Реализовано создание занятий и отметка статусов посещаемости («Присутствовал», «Отсутствовал», «Опоздал») в `AttendanceActivity`.
 * [x] **Спринт 4:** Подключена локальная база данных Room (`AppDatabase`), сущности `StudentEntity`, `LessonEntity`, `AttendanceEntity` и DAO (`US-11` — `US-13`).
 * [x] **Спринт 5:** Реализован экран статистики и истории посещаемости (`StatisticsActivity`), расчёт показателей (занятия, присутствия, пропуски, опоздания, процент посещаемости), фильтрация по группе, студенту и дате, а также обработка пустых результатов (`US-14` — `US-16`).
-* [ ] **Спринт 6:** Финальная сборка, полный приёмочный прогон, оформление итоговой документации и защита проекта.
+* [x] **Спринт 6:** Финальная сборка, полный приёмочный прогон, оформление итоговой документации и защита проекта.
